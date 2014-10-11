@@ -10,6 +10,7 @@ from drpython.block import Block
 from drpython.block import Color
 from drpython.brick import Brick
 from drpython.colors import *
+from drpython.utils import Pos
 
 WIDTH = 8
 HEIGHT = 16
@@ -17,7 +18,10 @@ HEIGHT = 16
 WIDTH_PIXELS = WIDTH * drpython.block.WIDTH
 HEIGHT_PIXELS = HEIGHT * drpython.block.HEIGHT
 
-SPAWN_POINT = (3, 0)
+SPAWN_POS = Pos(x=3, y=0)
+
+class OutOfBoard(Exception):
+    pass
 
 class Board(object):
 
@@ -26,9 +30,9 @@ class Board(object):
         # Init board with clear blocks
         self._board = []
         for h in range(0, HEIGHT):
-            self._board.append([])
+            self.board.append([])
             for w in range(0, WIDTH):
-                self._board[h].append(Block(w, h))
+                self.board[h].append(Block(w, h))
 
         self._brick = None
 
@@ -41,8 +45,8 @@ class Board(object):
         )
 
         blocks = (
-            self._board[SPAWN_POINT[1]][SPAWN_POINT[0]],
-            self._board[SPAWN_POINT[1]][SPAWN_POINT[0]+1],
+            self.block(SPAWN_POS.x, SPAWN_POS.y),
+            self.block(SPAWN_POS.x + 1, SPAWN_POS.y),
         )
 
         for i in (0,1):
@@ -65,8 +69,8 @@ class Board(object):
         else:
             raise InvalidParameter("Unknown direction: {}".format(direction))
 
-        new_a = self.board[a.y+y][a.x+x]
-        new_b = self.board[b.y+y][b.x+x]
+        new_a = self.block(a.x+x, a.y+y)
+        new_b = self.block(b.x+x, b.y+y)
 
         a_color = a.color
         b_color = b.color
@@ -84,7 +88,7 @@ class Board(object):
 
         for h in range(0, HEIGHT):
             for w in range(0, WIDTH):
-                self._render_block(self._display, self._board[h][w])
+                self._render_block(self._display, self.block(w, h))
 
         return self.display
 
@@ -105,6 +109,13 @@ class Board(object):
             block.y_pixels,
             drpython.block.WIDTH,
             drpython.block.HEIGHT))
+
+    def block(self, x, y):
+        if len(self.board)-1 >= y:
+            if len(self.board[y])-1 >= x:
+                return self.board[y][x]
+
+        raise OutOfBoard("Position ({}, {}) not on board".format(x, y))
 
     @property
     def board(self):
