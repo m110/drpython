@@ -5,3 +5,9 @@ class InvalidOperation(Exception):
 
 class InvalidParameter(Exception):
     pass
+
+class OutOfBoard(Exception):
+    pass
+
+class PositionOccupied(Exception):
+    pass

@@ -5,7 +5,7 @@ import random
 import pygame
 import drpython.block
 import drpython.brick
-from drpython.exception import InvalidParameter
+from drpython.exceptions import *
 from drpython.block import Block
 from drpython.block import Color
 from drpython.brick import Brick
@@ -20,9 +20,6 @@ HEIGHT_PIXELS = HEIGHT * drpython.block.HEIGHT
 
 SPAWN_POS = Pos(x=3, y=0)
 
-class OutOfBoard(Exception):
-    pass
-
 class Board(object):
 
     def __init__(self):
@@ -30,23 +27,26 @@ class Board(object):
         # Init board with clear blocks
         self._board = []
         for h in range(0, HEIGHT):
-            self.board.append([])
+            self._board.append([])
             for w in range(0, WIDTH):
-                self.board[h].append(Block(w, h))
+                self._board[h].append(Block(w, h))
 
         self._brick = None
 
     def spawn_brick(self):
-        # TODO check if the spot is empty
+        blocks = (
+            self.block(SPAWN_POS.x, SPAWN_POS.y),
+            self.block(SPAWN_POS.x + 1, SPAWN_POS.y),
+        )
+
+        for block in blocks:
+            if not block.is_clear():
+                # TODO catch this somewhere and end game
+                raise PositionOccupied("Block is not clear at spawn point")
 
         colors = (
             random.randint(1,3),
             random.randint(1,3),
-        )
-
-        blocks = (
-            self.block(SPAWN_POS.x, SPAWN_POS.y),
-            self.block(SPAWN_POS.x + 1, SPAWN_POS.y),
         )
 
         for i in (0,1):
@@ -69,8 +69,15 @@ class Board(object):
         else:
             raise InvalidParameter("Unknown direction: {}".format(direction))
 
-        new_a = self.block(a.x+x, a.y+y)
-        new_b = self.block(b.x+x, b.y+y)
+        try:
+            new_a = self.block(a.x+x, a.y+y)
+            new_b = self.block(b.x+x, b.y+y)
+        except OutOfBoard:
+            return
+
+        if (new_a != b and not new_a.is_clear()) or \
+           (new_b != a and not new_b.is_clear()):
+            raise PositionOccupied("Position is occupied by colored block")
 
         a_color = a.color
         b_color = b.color
@@ -111,15 +118,11 @@ class Board(object):
             drpython.block.HEIGHT))
 
     def block(self, x, y):
-        if len(self.board)-1 >= y:
-            if len(self.board[y])-1 >= x:
-                return self.board[y][x]
+        if y >= 0 and len(self._board)-1 >= y:
+            if x >= 0 and len(self._board[y])-1 >= x:
+                return self._board[y][x]
 
         raise OutOfBoard("Position ({}, {}) not on board".format(x, y))
-
-    @property
-    def board(self):
-        return self._board
 
     @property
     def brick(self):

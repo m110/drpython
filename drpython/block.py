@@ -1,6 +1,6 @@
 """Block class"""
 
-from drpython.exception import *
+from drpython.exceptions import *
 from drpython.colors import *
 
 WIDTH = 20
@@ -38,6 +38,9 @@ class Block(object):
 
     def __repr__(self):
         return 'Block ({}, {}) {}'.format(self.x, self.y, self.color)
+
+    def is_clear(self):
+        return self.color == Color.CLEAR
 
     @property
     def x(self):
