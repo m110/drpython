@@ -4,8 +4,13 @@ from drpython.block import Block
 
 class Brick(object):
 
-    def __init__(self, blocks, colors):
+    def __init__(self, blocks):
         self._blocks = blocks
-        self._colors = colors
 
-    
+    def set_blocks(self, block_a, block_b):
+        self._blocks = (block_a, block_b)
+
+    @property
+    def blocks(self):
+        return self._blocks
+
