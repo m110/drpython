@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-from game import Game
+from drpython.game import Game
 
 if __name__ == '__main__':
     game = Game()
