@@ -50,11 +50,14 @@ class BoardTest(unittest.TestCase):
         block_2 = self.board.block(0, 0)
         self.assertIs(block, block_2)
 
-        with self.assertRaises(OutOfBoard):
-            _ = self.board.block(board.WIDTH + 1, board.HEIGHT + 1)
+        with self.assertRaises(BottomReached):
+            _ = self.board.block(0, board.HEIGHT + 1)
 
         with self.assertRaises(OutOfBoard):
-            _ = self.board.block(-1, -1)
+            _ = self.board.block(999, 0)
+
+        with self.assertRaises(OutOfBoard):
+            _ = self.board.block(-1, 0)
 
     def test_move_brick_invalid(self):
         self.board.spawn_brick()
@@ -100,17 +103,6 @@ class BoardTest(unittest.TestCase):
             self.assertEquals(brick.blocks[i].x, blocks[i].x + 1)
             self.assertEquals(brick.blocks[i].y, blocks[i].y)
             self.assertEquals(brick.blocks[i].color, blocks[i].color)
-
-    def test_move_brick_collision(self):
-        self.board.spawn_brick()
-
-        blocks = self.board.brick.blocks
-
-        for b in blocks:
-            self.board.block(b.x, b.y + 1).set_color(Color.RED)
-
-        with self.assertRaises(PositionOccupied):
-            self.board.move_brick('down')
 
 if __name__ == '__main__':
     unittest.main()

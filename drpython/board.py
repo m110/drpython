@@ -56,6 +56,7 @@ class Board(object):
 
     def move_brick(self, direction):
         a, b = self.brick.blocks
+        collision = False
 
         if direction == 'down':
             y = 1
@@ -72,12 +73,12 @@ class Board(object):
         try:
             new_a = self.block(a.x+x, a.y+y)
             new_b = self.block(b.x+x, b.y+y)
-        except OutOfBoard:
-            return
+        except (OutOfBoard, BottomReached), e:
+            raise
 
         if (new_a != b and not new_a.is_clear()) or \
            (new_b != a and not new_b.is_clear()):
-            raise PositionOccupied("Position is occupied by colored block")
+               raise PositionOccupied("Collision occured")
 
         a_color = a.color
         b_color = b.color
@@ -89,6 +90,9 @@ class Board(object):
         new_b.set_color(b_color)
 
         self.brick.set_blocks(new_a, new_b)
+
+    def handle_collision(self):
+        self.spawn_brick()
 
     def render(self):
         self.display.fill(BLACK)
@@ -121,8 +125,10 @@ class Board(object):
         if y >= 0 and len(self._board)-1 >= y:
             if x >= 0 and len(self._board[y])-1 >= x:
                 return self._board[y][x]
-
-        raise OutOfBoard("Position ({}, {}) not on board".format(x, y))
+            else:
+                raise OutOfBoard("Position ({}, {}) not on board".format(x, y))
+        else:
+            raise BottomReached("Bottom reached by block")
 
     @property
     def brick(self):
