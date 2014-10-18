@@ -4,18 +4,23 @@ import copy
 import unittest
 from drpython import board
 from drpython.board import Board
+from drpython.block import Block
 from drpython.block import Color
 from drpython.exceptions import *
+from drpython.utils import Pos
 
 class BoardTest(unittest.TestCase):
     def setUp(self):
         self.board = Board()
 
+    def assertPosEqual(self, a, b):
+        self.assertTrue(a == b)
+
     def test_init_board_size(self):
-        self.assertEquals(len(self.board._board), board.HEIGHT)
+        self.assertEqual(len(self.board._board), board.HEIGHT)
 
         for row in self.board._board:
-            self.assertEquals(len(row), board.WIDTH)
+            self.assertEqual(len(row), board.WIDTH)
 
     def test_init_brick_none(self):
         self.assertIsNone(self.board._brick)
@@ -27,11 +32,8 @@ class BoardTest(unittest.TestCase):
 
         block_a, block_b = self.board.brick.blocks
 
-        self.assertEquals(block_a.x, board.SPAWN_POS.x)
-        self.assertEquals(block_a.y, board.SPAWN_POS.y)
-
-        self.assertEquals(block_b.x, board.SPAWN_POS.x + 1)
-        self.assertEquals(block_b.y, board.SPAWN_POS.y)
+        self.assertPosEqual(block_a.pos, board.SPAWN_POS)
+        self.assertPosEqual(block_b.pos, board.SPAWN_POS + Pos(1, 0))
 
     def test_spawn_brick_occupied(self):
         self.board.spawn_brick()
@@ -43,8 +45,7 @@ class BoardTest(unittest.TestCase):
         block = self.board.block(0, 0)
 
         self.assertIsNotNone(block)
-        self.assertEqual(block.x, 0)
-        self.assertEqual(block.y, 0)
+        self.assertPosEqual(block.pos, Pos(0, 0))
 
         # Should return the same instance
         block_2 = self.board.block(0, 0)
@@ -74,9 +75,8 @@ class BoardTest(unittest.TestCase):
         self.board.move_brick('down')
 
         for i in range(0, 2):
-            self.assertEquals(brick.blocks[i].x, blocks[i].x)
-            self.assertEquals(brick.blocks[i].y, blocks[i].y + 1)
-            self.assertEquals(brick.blocks[i].color, blocks[i].color)
+            self.assertPosEqual(brick.blocks[i].pos, blocks[i].pos + Pos(0, 1))
+            self.assertEqual(brick.blocks[i].color, blocks[i].color)
 
     def test_move_brick_left(self):
         self.board.spawn_brick()
@@ -87,9 +87,9 @@ class BoardTest(unittest.TestCase):
         self.board.move_brick('left')
 
         for i in range(0, 2):
-            self.assertEquals(brick.blocks[i].x, blocks[i].x - 1)
-            self.assertEquals(brick.blocks[i].y, blocks[i].y)
-            self.assertEquals(brick.blocks[i].color, blocks[i].color)
+            self.assertEqual(brick.blocks[i].x, blocks[i].x - 1)
+            self.assertEqual(brick.blocks[i].y, blocks[i].y)
+            self.assertEqual(brick.blocks[i].color, blocks[i].color)
 
     def test_move_brick_right(self):
         self.board.spawn_brick()
@@ -99,10 +99,91 @@ class BoardTest(unittest.TestCase):
 
         self.board.move_brick('right')
 
+        colors = [o.color for o in blocks]
         for i in range(0, 2):
-            self.assertEquals(brick.blocks[i].x, blocks[i].x + 1)
-            self.assertEquals(brick.blocks[i].y, blocks[i].y)
-            self.assertEquals(brick.blocks[i].color, blocks[i].color)
+            self.assertEqual(brick.blocks[i].x, blocks[i].x + 1)
+            self.assertEqual(brick.blocks[i].y, blocks[i].y)
+            self.assertEqual(brick.blocks[i].color, colors[i])
+
+    def test_rotate_brick_to_vertical(self):
+        self.board.spawn_brick()
+        # Ensure there is enough space
+        self.board.move_brick('down')
+
+        origin = self.board.brick.blocks
+        colors = [o.color for o in origin]
+
+        self.board.rotate_brick()
+        brick = self.board.brick
+
+        self.assertFalse(brick.is_horizontal())
+        self.assertPosEqual(brick.blocks[0].pos, origin[0].pos)
+        self.assertPosEqual(brick.blocks[1].pos, origin[1].pos + Pos(-1, -1))
+
+        for i in range(0, 2):
+            self.assertEqual(brick.blocks[i].color, colors[i])
+
+    def test_rotate_brick_to_vertical_obstacle(self):
+        self.board.spawn_brick()
+
+        origin = self.board.brick.blocks
+        colors = [o.color for o in origin]
+
+        self.board.rotate_brick()
+        brick = self.board.brick
+
+        self.assertFalse(brick.is_horizontal())
+        self.assertPosEqual(brick.blocks[0].pos, origin[0].pos + Pos(0, 1))
+        self.assertPosEqual(brick.blocks[1].pos, origin[1].pos + Pos(-1, 0))
+
+        for i in range(0, 2):
+            self.assertEqual(brick.blocks[i].color, colors[i])
+
+    def test_rotate_brick_to_horizontal(self):
+        self.board.spawn_brick()
+        # Ensure there is enough space
+        self.board.move_brick('down')
+        # Set up origin vertical position
+        self.board.rotate_brick()
+
+        origin = self.board.brick.blocks
+        colors = [o.color for o in origin]
+        colors.reverse()
+
+        self.board.rotate_brick()
+        brick = self.board.brick
+
+        self.assertTrue(brick.is_horizontal())
+        self.assertPosEqual(brick.blocks[0].pos, origin[1].pos + Pos(0, 1))
+        self.assertPosEqual(brick.blocks[1].pos, origin[0].pos + Pos(1, 0))
+
+        for i in range(0, 2):
+            self.assertEqual(brick.blocks[i].color, colors[i])
+
+    def test_rotate_brick_to_horizontal_obstace(self):
+        self.board.spawn_brick()
+        # Ensure there is enough space
+        self.board.move_brick('down')
+        # Set up origin vertical position
+        self.board.rotate_brick()
+
+        # Place obstacle
+        b = self.board.brick.blocks[0]
+        self.board.block(b.x + 1, b.y).set_color(Color.RED)
+
+        origin = self.board.brick.blocks
+        colors = [o.color for o in origin]
+        colors.reverse()
+
+        self.board.rotate_brick()
+        brick = self.board.brick
+
+        self.assertTrue(brick.is_horizontal())
+        self.assertPosEqual(brick.blocks[0].pos, origin[1].pos + Pos(-1, 1))
+        self.assertPosEqual(brick.blocks[1].pos, origin[0].pos)
+
+        for i in range(0, 2):
+            self.assertEqual(brick.blocks[i].color, colors[i])
 
 if __name__ == '__main__':
     unittest.main()

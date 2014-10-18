@@ -2,6 +2,7 @@
 
 from drpython.exceptions import *
 from drpython.colors import *
+from drpython.utils import Pos
 
 WIDTH = 20
 HEIGHT = 14
@@ -57,6 +58,10 @@ class Block(object):
     @property
     def y_pixels(self):
         return self.y * HEIGHT
+
+    @property
+    def pos(self):
+        return Pos(self.x, self.y)
 
     @property
     def color(self):

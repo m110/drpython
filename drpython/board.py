@@ -2,6 +2,7 @@
 
 import random
 
+import copy
 import pygame
 import drpython.block
 import drpython.brick
@@ -91,6 +92,52 @@ class Board(object):
 
         self.brick.set_blocks(new_a, new_b)
 
+    def rotate_brick(self):
+        transform = (
+            # vertical to horizontal
+            ((Pos(1, 0), Pos(0, 1)),
+             (Pos(0, 0), Pos(-1, 1))),
+            # horizontal to vertical
+            ((Pos(0, 0), Pos(-1, -1)),
+             (Pos(0, 1), Pos(-1, 0)))
+        )
+
+        section = int(self.brick.is_horizontal())
+
+        origin = self.brick.blocks
+        new_blocks = ()
+
+        for offset in transform[section]:
+            try:
+                i = not section
+                j = not i
+                new_blocks = (
+                    self.block(origin[i].x + offset[i].x, origin[i].y + offset[i].y),
+                    self.block(origin[j].x + offset[j].x, origin[j].y + offset[j].y),
+                )
+
+                # Don't overwrite blocks
+                for b in new_blocks:
+                    if not b.is_clear() and b.pos != origin[0].pos and b.pos != origin[1].pos:
+                        raise InvalidOperation("New block is occupied")
+
+                if self.brick.is_horizontal():
+                    # standard colors
+                    colors = (origin[0].color, origin[1].color)
+                else:
+                    # swap colors
+                    colors = (origin[1].color, origin[0].color)
+
+                for k in range(0, 2):
+                    origin[k].clear()
+                    new_blocks[k].set_color(colors[k])
+
+                self.brick.set_blocks(*new_blocks)
+            except (OutOfBoard, InvalidOperation), e:
+                continue
+            else:
+                break
+
     def handle_collision(self):
         self.spawn_brick()
 
@@ -122,8 +169,11 @@ class Board(object):
             drpython.block.HEIGHT))
 
     def block(self, x, y):
-        if y >= 0 and len(self._board)-1 >= y:
-            if x >= 0 and len(self._board[y])-1 >= x:
+        if x < 0 or y < 0:
+            raise OutOfBoard("Trying to get block at negative position")
+
+        if y <= len(self._board)-1:
+            if x <= len(self._board[y])-1:
                 return self._board[y][x]
             else:
                 raise OutOfBoard("Position ({}, {}) not on board".format(x, y))

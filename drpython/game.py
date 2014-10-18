@@ -17,7 +17,8 @@ BOARD_OFFSET_X = (WINDOW_WIDTH - drpython.board.WIDTH_PIXELS) / 2
 BOARD_OFFSET_Y = (WINDOW_HEIGHT - drpython.board.HEIGHT_PIXELS) / 2
 BOARD_BORDER = 1
 
-BLOCK_FALL_INTERVAL = 100
+BLOCK_FALL_INTERVAL = 300
+SPEED_FALL_MULTIPLIER = 100.0
 
 class Game(object):
 
@@ -64,9 +65,8 @@ class Game(object):
             self._block_fall_timer = BLOCK_FALL_INTERVAL
         else:
             if self._speed:
-                delta *= 100.0
+                delta *= SPEED_FALL_MULTIPLIER
 
-            print delta
             self._block_fall_timer -= delta
 
     def handle_collision(self):
@@ -82,6 +82,8 @@ class Game(object):
                 self.move_brick(direction)
             elif event.key == K_DOWN:
                 self._speed = True
+            elif event.key == K_SPACE:
+                self.board.rotate_brick()
         elif event.type == KEYUP:
             if event.key == K_DOWN:
                 self._speed = False

@@ -14,3 +14,5 @@ class Brick(object):
     def blocks(self):
         return self._blocks
 
+    def is_horizontal(self):
+        return self.blocks[0].y == self.blocks[1].y
