@@ -1,8 +1,6 @@
-"""Brick class"""
-
-from drpython.block import Block
 
 class Brick(object):
+    """Single brick consists of two blocks."""
 
     def __init__(self, blocks):
         self._blocks = blocks

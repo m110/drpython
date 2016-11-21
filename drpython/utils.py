@@ -1,6 +1,3 @@
-"""Utils module"""
-
-from collections import namedtuple
 
 class Pos(object):
 
@@ -29,4 +26,3 @@ class Pos(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
-

@@ -1,9 +1,7 @@
 """Game board class."""
-
+import pygame
 import random
 
-import copy
-import pygame
 import drpython.block
 import drpython.brick
 from drpython.exceptions import *
@@ -20,6 +18,7 @@ WIDTH_PIXELS = WIDTH * drpython.block.WIDTH
 HEIGHT_PIXELS = HEIGHT * drpython.block.HEIGHT
 
 SPAWN_POS = Pos(x=3, y=0)
+
 
 class Board(object):
 
@@ -46,18 +45,17 @@ class Board(object):
                 raise PositionOccupied("Block is not clear at spawn point")
 
         colors = (
-            random.randint(1,3),
-            random.randint(1,3),
+            random.randint(1, 3),
+            random.randint(1, 3),
         )
 
-        for i in (0,1):
+        for i in (0, 1):
             blocks[i].set_color(colors[i])
 
         self._brick = Brick(blocks)
 
     def move_brick(self, direction):
         a, b = self.brick.blocks
-        collision = False
 
         if direction == 'down':
             y = 1
@@ -74,12 +72,11 @@ class Board(object):
         try:
             new_a = self.block(a.x+x, a.y+y)
             new_b = self.block(b.x+x, b.y+y)
-        except (OutOfBoard, BottomReached), e:
+        except (OutOfBoard, BottomReached):
             raise
 
-        if (new_a != b and not new_a.is_clear()) or \
-           (new_b != a and not new_b.is_clear()):
-               raise PositionOccupied("Collision occured")
+        if (new_a != b and not new_a.is_clear()) or (new_b != a and not new_b.is_clear()):
+            raise PositionOccupied("Collision occurred")
 
         a_color = a.color
         b_color = b.color
@@ -105,7 +102,6 @@ class Board(object):
         section = int(self.brick.is_horizontal())
 
         origin = self.brick.blocks
-        new_blocks = ()
 
         for offset in transform[section]:
             try:
@@ -133,7 +129,7 @@ class Board(object):
                     new_blocks[k].set_color(colors[k])
 
                 self.brick.set_blocks(*new_blocks)
-            except (OutOfBoard, InvalidOperation), e:
+            except (OutOfBoard, InvalidOperation):
                 continue
             else:
                 break
@@ -163,10 +159,10 @@ class Board(object):
             raise InvalidParameter("Block has invalid color: {}".format(block.color))
 
         display.fill(color,
-            (block.x_pixels,
-            block.y_pixels,
-            drpython.block.WIDTH,
-            drpython.block.HEIGHT))
+                     (block.x_pixels,
+                      block.y_pixels,
+                      drpython.block.WIDTH,
+                      drpython.block.HEIGHT))
 
     def block(self, x, y):
         if x < 0 or y < 0:

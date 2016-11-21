@@ -1,7 +1,11 @@
 #!/usr/bin/env python2
-
+import os
+import sys
 import copy
 import unittest
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+
 from drpython import board
 from drpython.board import Board
 from drpython.block import Block

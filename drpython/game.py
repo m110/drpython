@@ -1,8 +1,6 @@
-"""Dr. Python Game module"""
-
 import sys
 import pygame
-from pygame.locals import *
+from pygame.constants import *
 
 import drpython.board
 from drpython.colors import *
@@ -19,6 +17,7 @@ BOARD_BORDER = 1
 
 BLOCK_FALL_INTERVAL = 300
 SPEED_FALL_MULTIPLIER = 100.0
+
 
 class Game(object):
 
@@ -41,18 +40,19 @@ class Game(object):
             for event in pygame.event.get():
                 self.process_event(event)
 
-            self.update(self.fpsClock.get_time())
+            self.update(self.fps_clock.get_time())
 
-            self.display.fill(DARKGRAY)
+            self.display.fill(DARK_GRAY)
 
-            pygame.draw.rect(self.display, DARKBLUE,
-                    (BOARD_OFFSET_X-BOARD_BORDER, BOARD_OFFSET_Y-BOARD_BORDER,
-                     drpython.board.WIDTH_PIXELS+BOARD_BORDER*2, drpython.board.HEIGHT_PIXELS+BOARD_BORDER*2))
+            pygame.draw.rect(self.display, DARK_BLUE,
+                             (BOARD_OFFSET_X-BOARD_BORDER, BOARD_OFFSET_Y-BOARD_BORDER,
+                              drpython.board.WIDTH_PIXELS+BOARD_BORDER*2,
+                              drpython.board.HEIGHT_PIXELS+BOARD_BORDER*2))
             board_display = self.board.render()
             self.display.blit(board_display, (BOARD_OFFSET_X, BOARD_OFFSET_Y))
 
             pygame.display.update()
-            self.fpsClock.tick(FPS)
+            self.fps_clock.tick(FPS)
 
     def update(self, delta):
 
@@ -104,6 +104,5 @@ class Game(object):
         return self._display
 
     @property
-    def fpsClock(self):
+    def fps_clock(self):
         return self._fpsClock
-

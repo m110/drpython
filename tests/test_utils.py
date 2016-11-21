@@ -1,7 +1,12 @@
 #!/usr/bin/env python2
-
+import os
+import sys
 import unittest
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+
 from drpython.utils import Pos
+
 
 class PosTest(unittest.TestCase):
 
@@ -76,3 +81,6 @@ class PosTest(unittest.TestCase):
         self.assertEqual(pos.x, 105)
         self.assertEqual(pos.y, 210)
 
+
+if __name__ == '__main__':
+    unittest.main()
