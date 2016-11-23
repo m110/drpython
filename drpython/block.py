@@ -18,6 +18,7 @@ class Block(object):
         self._x = x
         self._y = y
         self._color = Color.CLEAR
+        self._falling = False
         if color:
             self.set_color(color)
 
@@ -36,11 +37,22 @@ class Block(object):
 
         self._color = Color.CLEAR
 
+    def set_falling(self, falling):
+        falling = bool(falling)
+
+        if falling == self._falling:
+            raise InvalidOperation("Falling already set to {}".format(falling))
+
+        self._falling = falling
+
     def __repr__(self):
-        return 'Block ({}, {}) {}'.format(self.x, self.y, self.color)
+        return 'Block ({}, {}) color: {} falling: {}'.format(self.x, self.y, self.color, self._falling)
 
     def is_clear(self):
         return self.color == Color.CLEAR
+
+    def is_falling(self):
+        return self._falling
 
     @property
     def x(self):

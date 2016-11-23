@@ -70,7 +70,7 @@ class Game(object):
             self._block_fall_timer -= delta
 
     def handle_collision(self):
-        self.board.spawn_brick()
+        self.board.handle_collision()
 
     def process_event(self, event):
         if event.type == QUIT:

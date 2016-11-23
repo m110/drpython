@@ -134,8 +134,123 @@ class Board(object):
             else:
                 break
 
+    def check_match(self):
+        for i in range(2):
+            block = self._brick.blocks[i]
+            if block.is_clear():
+                continue
+
+            horizontal = set(self._get_matches_in_direction(block, 1, 0) + self._get_matches_in_direction(block, -1, 0))
+            vertical = set(self._get_matches_in_direction(block, 0, 1) + self._get_matches_in_direction(block, 0, -1))
+
+            for matches in (horizontal, vertical):
+                if len(matches) >= 3:
+                    for next_block in matches:
+                        next_block.clear()
+                    block.clear()
+
+    def _get_matches_in_direction(self, block, x_dir, y_dir):
+        matches = []
+
+        x = block.x + x_dir
+        y = block.y + y_dir
+
+        while True:
+            try:
+                next_block = self.block(x, y)
+            except (OutOfBoard, BottomReached):
+                break
+
+            if next_block.is_clear():
+                break
+
+            if block.color != next_block.color:
+                break
+
+            matches.append(next_block)
+
+            x += x_dir
+            y += y_dir
+
+        return matches
+
+    def check_bricks_in_air(self):
+        changed = True
+        while changed:
+            changed = False
+            for x in range(0, WIDTH):
+                for y in range(0, HEIGHT):
+                    brick_changed = self._check_brick_in_air(x, y)
+                    if brick_changed:
+                        changed = True
+
+    def _check_brick_in_air(self, x, y):
+        block = self.block(x, y)
+        if block.is_clear() or block.is_falling():
+            return False
+
+        try:
+            bottom_block = self.block(x, y+1)
+        except BottomReached:
+            return False
+
+        right_block = None
+        left_block = None
+
+        try:
+            right_block = self.block(x+1, y)
+        except OutOfBoard:
+            pass
+
+        try:
+            left_block = self.block(x-1, y)
+        except OutOfBoard:
+            pass
+
+        if (bottom_block.is_clear() or bottom_block.is_falling()) and \
+                (not right_block or right_block.is_clear()) and \
+                (not left_block or left_block.is_clear()):
+            block.set_falling(True)
+            return True
+
+        return False
+
+    def get_falling_blocks(self):
+        return [block for rows in reversed(self._board)
+                for block in rows
+                if block.is_falling()]
+
+    def handle_falling_blocks(self):
+        blocks = self.get_falling_blocks()
+
+        if not blocks:
+            return
+
+        for block in blocks:
+            try:
+                bottom_block = self.block(block.x, block.y+1)
+            except BottomReached:
+                block.set_falling(False)
+                continue
+
+            if bottom_block.is_clear():
+                bottom_block.set_color(block.color)
+                bottom_block.set_falling(True)
+                block.clear()
+                block.set_falling(False)
+            else:
+                block.set_falling(False)
+
     def handle_collision(self):
+        self.check_match()
+        self.check_bricks_in_air()
+
+        while self.get_falling_blocks():
+            self.handle_falling_blocks()
+
         self.spawn_brick()
+
+        # TODO check match after blocks fall down
 
     def render(self):
         self.display.fill(BLACK)

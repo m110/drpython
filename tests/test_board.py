@@ -8,10 +8,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
 from drpython import board
 from drpython.board import Board
-from drpython.block import Block
 from drpython.block import Color
 from drpython.exceptions import *
 from drpython.utils import Pos
+
 
 class BoardTest(unittest.TestCase):
     def setUp(self):
@@ -164,7 +164,7 @@ class BoardTest(unittest.TestCase):
         for i in range(0, 2):
             self.assertEqual(brick.blocks[i].color, colors[i])
 
-    def test_rotate_brick_to_horizontal_obstace(self):
+    def test_rotate_brick_to_horizontal_obstacle(self):
         self.board.spawn_brick()
         # Ensure there is enough space
         self.board.move_brick('down')
@@ -188,6 +188,15 @@ class BoardTest(unittest.TestCase):
 
         for i in range(0, 2):
             self.assertEqual(brick.blocks[i].color, colors[i])
+
+    def test_get_falling_blocks(self):
+        blocks = self.board.get_falling_blocks()
+        self.assertListEqual(blocks, [])
+
+        self.board.block(0, 0).set_falling(True)
+        blocks = self.board.get_falling_blocks()
+        self.assertListEqual(blocks, [self.board.block(0, 0)])
+
 
 if __name__ == '__main__':
     unittest.main()
